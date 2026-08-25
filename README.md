@@ -69,40 +69,44 @@ and image upload.
 Open your Home Assistant configuration.yaml file and add the following block. This creates sensors that
 poll your frame every 5 minutes:
 
+```
 rest:
-- resource: http://fraimic.local/api/info
-scan_interval: 300
-sensor:
-- name: "Fraimic Battery"
-value_template: "{{ value_json.battery.percent }}"
-unit_of_measurement: "%"
-device_class: battery
-- name: "Fraimic WiFi Signal"
-value_template: "{{ value_json.wifi.rssi }}"
-unit_of_measurement: "dBm"
-device_class: signal_strength
-- name: "Fraimic Firmware"
-value_template: "{{ value_json.firmware_version }}"
-- name: "Fraimic Charging"
-value_template: "{{ value_json.battery.charging }}"
-- name: "Fraimic IP"
-value_template: "{{ value_json.wifi.ip }}"
+  - resource: http://fraimic.local/api/info
+    scan_interval: 300
+    sensor:
+    - name: "Fraimic Battery"
+      value_template: "{{ value_json.battery.percent }}"
+      unit_of_measurement: "%"
+      device_class: battery
+    - name: "Fraimic WiFi Signal"
+      value_template: "{{ value_json.wifi.rssi }}"
+      unit_of_measurement: "dBm"
+      device_class: signal_strength
+    - name: "Fraimic Firmware"
+      value_template: "{{ value_json.firmware_version }}"
+    - name: "Fraimic Charging"
+      value_template: "{{ value_json.battery.charging }}"
+    - name: "Fraimic IP"
+      value_template: "{{ value_json.wifi.ip }}"
+```
 
 ## Step 2: Add Shell Commands
 These give Home Assistant the ability to send action commands to your frame:
 
+```
 shell_command:
-fraimic_restart: >-
-curl -s -X POST http://fraimic.local/api/restart
-fraimic_sleep: >-
-curl -s -X POST http://fraimic.local/api/sleep
-fraimic_refresh: >-
-curl -s -X POST http://fraimic.local/api/refresh
-fraimic_upload: >-
-curl -s -X POST
--H "Content-Type: application/octet-stream"
---data-binary @/config/www/fraimic/{{ filename }}
-http://fraimic.local/api/image
+  fraimic_restart: >-
+    curl -s -X POST http://fraimic.local/api/restart
+  fraimic_sleep: >-
+    curl -s -X POST http://fraimic.local/api/sleep
+  fraimic_refresh: >-
+    curl -s -X POST http://fraimic.local/api/refresh
+  fraimic_upload: >-
+    curl -s -X POST
+    -H "Content-Type: application/octet-stream"
+    --data-binary @/config/www/fraimic/{{ filename }}
+    http://fraimic.local/api/image
+```
 
 **Note on the upload command:** Place your .bin image files in /config/www/fraimic/ on your Home
 Assistant server. The {{ filename }} variable is passed when you call the command from a script or
@@ -121,60 +125,58 @@ A full Home Assistant restart is not needed. Your new sensors and commands will 
 
 Go to Settings > Automations & Scenes > Scripts > Add Script, or add directly to your
 scripts.yaml:
+```
 fraimic_restart:
-alias: "Fraimic Restart"
-icon: mdi:restart
-sequence:
-- service: shell_command.fraimic_restart
+  alias: "Fraimic Restart"
+  icon: mdi:restart
+  sequence:
+  - service: shell_command.fraimic_restart
+
 fraimic_sleep:
-alias: "Fraimic Sleep"
-icon: mdi:sleep
-sequence:
-- service: shell_command.fraimic_sleep
+  alias: "Fraimic Sleep"
+  icon: mdi:sleep
+  sequence:
+  - service: shell_command.fraimic_sleep
+
 fraimic_refresh_display:
-alias: "Fraimic Refresh Display"
-icon: mdi:monitor
-sequence:
-- service: shell_command.fraimic_refresh
-- fraimic_display_dinosaur:
-alias: "Display Dinosaur"
-icon: mdi:dinosaur
-sequence:
-- service: shell_command.fraimic_upload
-data:
-filename: dinosaur.bin
+  alias: "Fraimic Refresh Display"
+  icon: mdi:monitor
+  sequence:
+  - service: shell_command.fraimic_refresh
+fraimic_display_dinosaur:
+  alias: "Display Dinosaur"
+  icon: mdi:google-downasaur
+  sequence:
+  - service: shell_command.fraimic_upload
+    data:
+      filename: dinosaur.bin
+```
 
 ## Step 5: Add Dashboard Buttons
 Add these button cards to your Fraimic area dashboard for one-tap control:
 
-type: horizontal-stack
-cards:
-- type: button
-name: Restart
-icon: mdi:restart
-tap_action:
-action: perform-action
-perform_action: script.fraimic_restart
-- type: button
-name: Sleep
-icon: mdi:sleep
-tap_action:
-action: perform-action
-perform_action: script.fraimic_sleep
-- type: button
-name: Refresh
-icon: mdi:monitor
-tap_action:
-action: perform-action
-perform_action: script.fraimic_refresh_display
-- type: button
-name: Dinosaur
-icon: mdi:dinosaur
-tap_action:
-action: perform-action
-perform_action: script.fraimic_display_dinosaur
 
+```
+views:
+  - cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: script.fraimic_restart
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: script.fraimic_sleep
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: script.fraimic_refresh_display
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: script.display_dinosaur
 
+```
 
 ## For more info including automation ideas, Troubleshooting and Endpoint Info see our complete [Home Assistant & Rest API Guide](https://drive.google.com/file/d/1fUTzi31iUK2e9K2TmfDHFkUWmTx56qLZ/view?usp=drive_link)
 
